@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch Employees</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Fetch Employees</h1>
+        <form id="employeeForm">
+            <label for="api_key">API Key:</label>
+            <input type="text" id="api_key" name="api_key" required>
+            
+            <label for="q_organization_domains">Organization Domains:</label>
+            <input type="text" id="q_organization_domains" name="q_organization_domains" required>
+            
+            <label for="position_title">Position Title:</label>
+            <input type="text" id="position_title" name="position_title" required>
+            
+            <button type="submit">Fetch</button>
+        </form>
+        <div id="responseContainer"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

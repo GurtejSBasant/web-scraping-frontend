@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Details</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            border: none;
+            border-bottom: 2px solid brown;
+            padding: 5px;
+            margin-bottom: 10px;
+            width: 200px;
+        }
+        #searchButton, #previousButton, #nextButton {
+            background-color: brown;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #companyDetails {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .company-container {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333; /* Darker line between companies */
+        }
+        .job-listing {
+            margin-top: 10px;
+        }
+        .job {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #999; /* Lighter line between jobs */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search...">
+            <button id="searchButton">Search</button>
+            <button id="previousButton" disabled>Previous</button>
+            <button id="nextButton" disabled>Next</button>
+        </div>
+        <div id="companyDetails"></div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+
+        // Function to fetch data from the API
+        async function fetchData(companyIds, page) {
+            try {
+                const response = await fetch(`http://localhost:3000/fetch-data?page=${page}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ companiesId: companyIds })
+                });
+                const data = await response.json();
+                displayCompanyDetails(data.companies);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('companyDetails').textContent = 'Error fetching data';
+            }
+        }
+
+        // Function to display company details
+        function displayCompanyDetails(companies) {
+            const companyDetailsContainer = document.getElementById('companyDetails');
+            companyDetailsContainer.innerHTML = ''; // Clear previous results
+
+            // Loop through each company
+            companies.forEach(company => {
+                const { website, name, jobs } = company;
+
+                // Display company name and website
+                const companyElement = document.createElement('div');
+                companyElement.classList.add('company-container');
+                companyElement.innerHTML = `
+                    <h2>${name}</h2>
+                    <p><a href="${website}" target="_blank">${website}</a></p>
+                `;
+                companyDetailsContainer.appendChild(companyElement);
+
+                // Display jobs
+                const jobsElement = document.createElement('div');
+                jobsElement.classList.add('job-listing');
+                jobs.forEach(job => {
+                    const { title, skills, description, pretty_min_experience, pretty_salary_range, pretty_equity_range } = job;
+                    const skillsTags = skills.map(skill => skill.name).join(', ');
+                    const jobElement = document.createElement('div');
+                    jobElement.classList.add('job');
+                    jobElement.innerHTML = `
+                        <p><strong>Title:</strong> ${title}</p>
+                        <p><strong>Skills:</strong> ${skillsTags}</p>
+                        <p><strong>Minimum Experience:</strong> ${pretty_min_experience}</p>
+                        <p><strong>Salary Range:</strong> ${pretty_salary_range}</p>
+                        <p><strong>Equity Range:</strong> ${pretty_equity_range}</p>
+                    `;
+                    jobsElement.appendChild(jobElement);
+                });
+                companyElement.appendChild(jobsElement);
+            });
+        }
+
+        // Function to search companies
+        async function searchCompanies() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query === '') {
+                alert('Please enter a search query.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/algolia?query=${query}&page=${currentPage}&hitsPerPage=10`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                const companyIds = result.allCompanyIds;
+                await fetchData(companyIds, currentPage);
+                document.getElementById('previousButton').disabled = currentPage === 0;
+                document.getElementById('nextButton').disabled = false;
+            } catch (error) {
+                console.error('Error searching companies:', error);
+                document.getElementById('companyDetails').textContent = 'Error searching companies';
+            }
+        }
+
+        // Event listener for the search button
+        document.getElementById('searchButton').addEventListener('click', searchCompanies);
+
+        // Event listener for the previous button
+        document.getElementById('previousButton').addEventListener('click', function() {
+            currentPage--;
+            searchCompanies();
+        });
+
+        // Event listener for the next button
+        document.getElementById('nextButton').addEventListener('click', function() {
+            currentPage++;
+            searchCompanies();
+        });
+
+        // Prevent form submission on pressing enter in the search input
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchCompanies();
+            }
+        });
+    </script>
+</body>
+</html>
