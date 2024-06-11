@@ -44,7 +44,9 @@ async function search() {
     dataDisplay.innerHTML = 'Searching...';
 
     try {
-        const response = await fetch(`http://43.204.168.90:4400/search?term=${encodeURIComponent(searchTerm)}`);
+        const response = await fetch(`http://43.204.168.90:4400/search?term=${encodeURIComponent(searchTerm)}`, {
+            mode: 'cors', // Add mode: 'cors' to enable CORS handling
+        });
         if (!response.ok) {
             throw new Error(`An error has occurred: ${response.status}`);
         }
@@ -59,6 +61,7 @@ async function getCompanyDetails(companyName, logoUrl) {
     try {
         console.log(`Fetching details for company: ${companyName}, logo URL: ${logoUrl}`); // Log request details
         const response = await fetch('http://43.204.168.90:4500/get-company-domain-updated', {
+             mode: 'cors',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -125,6 +128,7 @@ async function fetchEmployees() {
 
     try {
         const response = await fetch('http://43.204.168.90:4500/fetch-employees', {
+             mode: 'cors',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
