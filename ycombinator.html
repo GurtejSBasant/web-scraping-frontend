@@ -50,6 +50,14 @@
             padding-bottom: 10px;
             border-bottom: 1px dashed #999; /* Lighter line between jobs */
         }
+        .fetch-details-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -69,12 +77,12 @@
         // Function to fetch data from the API
         async function fetchData(companyIds, page) {
             try {
-                const response = await fetch(`http://localhost:3000/fetch-data?page=${page}`, {
+                const response = await fetch(`http://43.204.168.90:4400/fetch-data?page=${page}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ companiesId: companyIds })
+                    body: JSON.stringify({ companiesId: companyIds }) 
                 });
                 const data = await response.json();
                 displayCompanyDetails(data.companies);
@@ -99,6 +107,7 @@
                 companyElement.innerHTML = `
                     <h2>${name}</h2>
                     <p><a href="${website}" target="_blank">${website}</a></p>
+                    <button class="fetch-details-button" data-url="${website}">Fetch employees and manager details from this company</button>
                 `;
                 companyDetailsContainer.appendChild(companyElement);
 
@@ -121,6 +130,14 @@
                 });
                 companyElement.appendChild(jobsElement);
             });
+
+            // Add event listener to the fetch details buttons
+            document.querySelectorAll('.fetch-details-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const companyUrl = this.getAttribute('data-url');
+                    window.location.href = `index.html?companyUrl=${encodeURIComponent(companyUrl)}`;
+                });
+            });
         }
 
         // Function to search companies
@@ -132,7 +149,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/algolia?query=${query}&page=${currentPage}&hitsPerPage=10`, {
+                const response = await fetch(`http://43.204.168.90:4400/algolia?query=${query}&page=${currentPage}&hitsPerPage=10`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

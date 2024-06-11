@@ -15,10 +15,19 @@
         <div class="employee-fetch-container">
             <input type="text" id="companyDomainInput" placeholder="Enter company domain">
             <button id="viewEmployeesButton">Fetch Manager of the Company</button>
-            <button id="fetchEmployeesButton">Fetch Employees of the Company</button> <!-- Added button -->
+            <button id="fetchEmployeesButton">Fetch Employees of the Company</button>
         </div>
         <div id="dataDisplay"></div>
     </div>
     <script src="script.js"></script>
+    <script>
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const companyUrl = urlParams.get('companyUrl');
+            if (companyUrl) {
+                document.getElementById('companyDomainInput').value = companyUrl;
+            }
+        };
+    </script>
 </body>
 </html>

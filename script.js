@@ -13,7 +13,7 @@ async function fetchEmployeesOfCompany() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/fetch-employees', {
+        const response = await fetch('http://43.204.168.90:4500/fetch-employees', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -44,7 +44,7 @@ async function search() {
     dataDisplay.innerHTML = 'Searching...';
 
     try {
-        const response = await fetch(`http://localhost:3000/search?term=${encodeURIComponent(searchTerm)}`);
+        const response = await fetch(`http://43.204.168.90:4400/search?term=${encodeURIComponent(searchTerm)}`);
         if (!response.ok) {
             throw new Error(`An error has occurred: ${response.status}`);
         }
@@ -58,7 +58,7 @@ async function search() {
 async function getCompanyDetails(companyName, logoUrl) {
     try {
         console.log(`Fetching details for company: ${companyName}, logo URL: ${logoUrl}`); // Log request details
-        const response = await fetch('http://localhost:3000/get-company-domain-updated', {
+        const response = await fetch('http://43.204.168.90:4500/get-company-domain-updated', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -102,7 +102,14 @@ async function getCompanyDetails(companyName, logoUrl) {
         throw new Error('Failed to fetch company details');
     }
 }
+ 
 
+function redirectToIndexWithUrl(websiteUrl) {
+    // Encode the URL to make it safe for use in the query string
+    const encodedUrl = encodeURIComponent(websiteUrl);
+    // Redirect to index.html with the company URL as a query parameter
+    window.location.href = `https://tiny-hotteok-64056b.netlify.app/?companyUrl=${encodedUrl}`;
+}
 
 
 async function fetchEmployees() {
@@ -117,7 +124,7 @@ async function fetchEmployees() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/fetch-employees', {
+        const response = await fetch('http://43.204.168.90:4500/fetch-employees', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -143,112 +150,61 @@ async function fetchEmployees() {
     }
 }
 
-async function fetchEmployeeEmail(employeeName) {
+async function fetchEmployeeEmail(apiKey, fullName) {
     try {
-        const domain = document.getElementById('companyDomainInput').value; // Extracting domain from input field
-        const organizationName = domain.split('.')[0]; // Extracting organization name from domain
-        console.log("domain:",domain)
-        console.log("organizationName:",organizationName)
+        // Extract the organization name from the URL
+        const companyDomain = document.getElementById('companyDomainInput').value;
+        const url = new URL(companyDomain);
+        const organizationName = url.hostname.replace(/^www\./, '').split('.')[0];
 
-        const response = await fetch('http://localhost:3000/fetch-employees-emails', {
+        // Split full name into first and last names
+        const nameParts = fullName.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+
+        const response = await fetch('http://43.204.168.90:4500/fetch-employees-emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                api_key: 'ppKeBXq42XUYmR7o6NyW6Q',
-                first_name: employeeName.split(' ')[0], // Extracting first name
-                last_name: employeeName.split(' ')[1], // Extracting last name
-                organization_name: organizationName, // Using extracted organization name
-                domain: domain,
+                api_key: apiKey,
+                first_name: firstName,
+                last_name: lastName,
+                organization_name: organizationName, // Sending only the organization name
+                domain: companyDomain,
                 reveal_personal_emails: true
             })
         });
 
-        if (!response.ok) {
-            throw new Error(`An error has occurred: ${response.status}`);
-        }
-      
-        const responseData = await response.json();
-        console.log("response:",responseData)
+        const data = await response.json();
 
-        const email = responseData.person.email;
-        const contact = responseData.person.organization.sanitized_phone;
+        // Check if the data is properly formatted and contains the necessary properties
+        if (data && data.person) {
+            const person = data.person;
 
-        // Constructing the contact information
-        let contactInfo = 'Contact: ';
-        if (contact) {
-            contactInfo += contact;
+            // Safely access the properties, providing defaults if they are undefined
+            const sanitizedPhone = person.sanitized_phone || 'N/A';
+            const email = person.email || 'N/A';
+            const name = person.name || `${firstName} ${lastName}`;
+
+            // Display the employee details
+            console.log(`Name: ${name}, Email: ${email}, Phone: ${sanitizedPhone}`);
+
+            // Return the email and contact for further use
+            return { email, contact: sanitizedPhone };
         } else {
-            contactInfo += 'N/A';
+            console.error('Invalid response structure:', data);
+            throw new Error('Failed to fetch employee email');
         }
-
-        // Return the email and contact information
-        return {
-            email: email,
-            contact: contactInfo
-        };
     } catch (error) {
         console.error('Error fetching employee email:', error);
         throw new Error('Failed to fetch employee email');
     }
 }
 
-// Update displayEmployees function to show email and contact
-function displayEmployees(data) {
-    const dataDisplay = document.getElementById('dataDisplay');
-    dataDisplay.innerHTML = '';
 
-    const employees = data.people || [];
-    const contacts = data.contacts || [];
 
-    const allEmployees = [...employees, ...contacts];
-
-    if (allEmployees.length === 0) {
-        dataDisplay.innerHTML = 'No employees found';
-        return;
-    }
-
-    allEmployees.forEach(employee => {
-        const employeeDiv = document.createElement('div');
-        employeeDiv.classList.add('data-item');
-
-        const email = employee.email || 'Email not disclosed';
-        const contact = employee.contact || 'N/A';
-
-        const employeeContent = `
-            <div>
-                <h2>${employee.name}</h2>
-                <p>Position: ${employee.title || 'N/A'}</p>
-                <p>Email: ${email}</p>
-                <p>${contact}</p>
-                <a href="${employee.linkedin_url}" target="_blank">LinkedIn Profile</a>
-                <button class="reveal-email" data-employee="${employee.name}">Reveal Email</button>
-            </div>
-        `;
-
-        employeeDiv.innerHTML = employeeContent;
-        dataDisplay.appendChild(employeeDiv);
-    });
-
-    // Attach click event listener to reveal email buttons
-    const revealButtons = document.querySelectorAll('.reveal-email ');
-    revealButtons.forEach(button => {
-        button.addEventListener('click', async () => {
-            const employeeName = button.dataset.employee;
-            try {
-                const email = await fetchEmployeeEmail(employeeName);
-                const emailElement = button.parentElement.querySelector('p:nth-of-type(2)'); // Select the email paragraph
-                emailElement.textContent = `Email: ${email.email}`; // Update the email
-                const contactElement = button.parentElement.querySelector('p:nth-of-type(3)'); // Select the contact paragraph
-                contactElement.textContent = email.contact; // Update the contact
-            } catch (error) {
-                console.error('Error:', error.message);
-                alert('Failed to fetch employee email');
-            }
-        });
-    });
-}
 
 // Update displayEmployees function to show email and contact
 function displayEmployees(data) {
@@ -279,7 +235,7 @@ function displayEmployees(data) {
                 <p>Email: ${email}</p>
                 <p>${contact}</p>
                 <a href="${employee.linkedin_url}" target="_blank">LinkedIn Profile</a>
-                <button class="reveal-email" data-employee="${employee.name}">Reveal Email</button>
+                <button class="reveal-email" data-employee="${employee.name}" data-domain="${employee.domain}">Reveal Email</button>
             </div>
         `;
 
@@ -292,12 +248,14 @@ function displayEmployees(data) {
     revealButtons.forEach(button => {
         button.addEventListener('click', async () => {
             const employeeName = button.dataset.employee;
+            const domain = button.dataset.domain;
             try {
-                const email = await fetchEmployeeEmail(employeeName);
+                const apiKey = 'ppKeBXq42XUYmR7o6NyW6Q';
+                const { email, contact } = await fetchEmployeeEmail(apiKey, employeeName, domain);
                 const emailElement = button.parentElement.querySelector('p:nth-of-type(2)'); // Select the email paragraph
-                emailElement.textContent = `Email: ${email.email}`; // Update the email
+                emailElement.textContent = `Email: ${email}`; // Update the email
                 const contactElement = button.parentElement.querySelector('p:nth-of-type(3)'); // Select the contact paragraph
-                contactElement.textContent = email.contact; // Update the contact
+                contactElement.textContent = contact; // Update the contact
             } catch (error) {
                 console.error('Error:', error.message);
                 alert('Failed to fetch employee email');
@@ -305,6 +263,7 @@ function displayEmployees(data) {
         });
     });
 }
+
 
 
 
