@@ -13,7 +13,7 @@ async function fetchEmployeesOfCompany() {
     }
 
     try {
-        const response = await fetch('http://43.204.168.90:4500/fetch-employees', {
+        const response = await fetch('https://stagingsourcebae.shethink.in/remote/fetch-employees', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -42,9 +42,9 @@ async function search() {
     const searchTerm = document.getElementById('searchInput').value;
     const dataDisplay = document.getElementById('dataDisplay');
     dataDisplay.innerHTML = 'Searching...';
-
+  
     try {
-        const response = await fetch(`http://43.204.168.90:4400/search?term=${encodeURIComponent(searchTerm)}`, {
+        const response = await fetch(`http://localhost:4500/search?term=${encodeURIComponent(searchTerm)}`, {
             mode: 'cors', // Add mode: 'cors' to enable CORS handling
         });
         if (!response.ok) {
@@ -127,7 +127,7 @@ async function fetchEmployees() {
     }
 
     try {
-        const response = await fetch('http://43.204.168.90:4500/fetch-employees', {
+        const response = await fetch('https://stagingsourcebae.shethink.in/remote/fetch-employees', {
              mode: 'cors',
             method: 'POST',
             headers: {
@@ -166,7 +166,7 @@ async function fetchEmployeeEmail(apiKey, fullName) {
         const firstName = nameParts[0];
         const lastName = nameParts.slice(1).join(' ');
 
-        const response = await fetch('http://43.204.168.90:4500/fetch-employees-emails', {
+        const response = await fetch('https://stagingsourcebae.shethink.in/remote/fetch-employees-emails', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

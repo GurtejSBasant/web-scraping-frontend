@@ -72,12 +72,12 @@
     </div>
 
     <script>
-        let currentPage = 0;
+        let currentPage = 0; 
 
         // Function to fetch data from the API
         async function fetchData(companyIds, page) {
             try {
-                const response = await fetch(`http://43.204.168.90:4400/fetch-data?page=${page}`, {
+                const response = await fetch(`https://stagingsourcebae.shethink.in/scraper/fetch-data?page=${page}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -149,7 +149,7 @@
             }
 
             try {
-                const response = await fetch(`http://43.204.168.90:4400/algolia?query=${query}&page=${currentPage}&hitsPerPage=10`, {
+                const response = await fetch(`https://stagingsourcebae.shethink.in/scraper/algolia?query=${query}&page=${currentPage}&hitsPerPage=10`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
